@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='css/home.css')}}">
+</head>
+<body>
+    <h2>Products</h2>
+
+    <div class="product-list">
+        {% for product in products %}
+        <div class="product-card">
+            <h3>{{ product['title'] }}</h3>
+            <img src="{{ product['image'] }}" alt="{{ product['title'] }}" width="100">
+            <p>Price: ₹{{ product['price'] }}</p>
+            <p>{{ product['description'] }}</p>
+        </div>
+        {% endfor %}
+        {% if name != "Guest" %}
+        <form action="{{ url_for('logout') }}" method="POST">
+            <button type="submit">Logout</button>
+        </form>
+        {% else %}
+        <p><a href="/api/login">Login</a> or <a href="/api/signup">Signup</a></p>
+        {% endif %}
+    </div>
+</body>
+</html>
+
+
+
+
+

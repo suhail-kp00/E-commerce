@@ -1,0 +1,35 @@
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+form label {
+    margin-top: 10px;
+    font-weight: bold;
+    color: #333;
+}
+
+form input, form textarea {
+    padding: 10px;
+    margin-top: 5px;
+    font-size: 16px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+form button {
+    width: 150px;
+    align-self: flex-end;
+    margin-top: 20px;
+    background-color: #28A745;
+}
+
+form button:hover {
+    background-color: #218838;
+}
+button[type="submit"] {
+    margin-top: 20px;
+    background-color: #25b425;
+    font-size: 16px;
+}
