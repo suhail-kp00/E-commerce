@@ -185,6 +185,9 @@ def delete_product(product_id):
     products_collection.delete_one({'_id': ObjectId(product_id)})
     return redirect(url_for('admin'))
 
+# Cart
+
+
 # Logout Route
 @app.route('/api/logout', methods=['POST'])
 def logout():
