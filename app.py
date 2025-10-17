@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
 
 # MongoDB Connection
-client = MongoClient('mongodb+srv://suhail:suhail123@cluster0.pxc97.mongodb.net/')
+client = MongoClient()
 db = client['userDB']
 users_collection = db['users']
 products_collection = db['products']
