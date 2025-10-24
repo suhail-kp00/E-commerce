@@ -5,6 +5,8 @@ import bcrypt
 import secrets
 # import bson
 from bson.objectid import ObjectId
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -12,7 +14,10 @@ app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
 
 # MongoDB Connection
-client = MongoClient('mongodb+srv://suhail:suhail123@cluster0.pxc97.mongodb.net/')
+# client = MongoClient('mongodb+srv://suhail:suhail123@cluster0.pxc97.mongodb.net/')
+mongo_uri = os.getenv('MONGO_URI')
+client = MongoClient(mongo_uri)
+
 db = client['userDB']
 users_collection = db['users']
 products_collection = db['products']
@@ -185,7 +190,75 @@ def delete_product(product_id):
     products_collection.delete_one({'_id': ObjectId(product_id)})
     return redirect(url_for('admin'))
 
-# Cart
+# cart
+@app.route('/add-to-cart/<product_id>')
+def add_to_cart(product_id):
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    product = products_collection.find_one({'_id': ObjectId(product_id)})
+    if not product:
+        return "Product not found!"
+
+    cart = session.get('cart', [])
+    for item in cart:
+        if item['product_id'] == str(product['_id']):
+            item['quantity'] += 1
+            break
+    else:
+        cart.append({
+            'product_id': str(product['_id']),
+            'title': product['title'],
+            'price': product['price'],
+            'image': product['image'],
+            'quantity': 1
+        })
+    session['cart'] = cart
+    return redirect(url_for('home'))
+#inc and decr
+@app.route('/increment/<product_id>')
+def increment_item(product_id):
+    cart = session.get('cart', [])
+    for item in cart:
+        if item['product_id'] == product_id:
+            item['quantity'] += 1
+            break
+    session['cart'] = cart
+    return redirect(url_for('view_cart'))
+
+@app.route('/decrement/<product_id>')
+def decrement_item(product_id):
+    cart = session.get('cart', [])
+    for item in cart:
+        if item['product_id'] == product_id:
+            item['quantity'] -= 1
+            if item['quantity'] <= 0:
+                cart = [i for i in cart if i['product_id'] != product_id]
+            break
+    session['cart'] = cart
+    return redirect(url_for('view_cart'))
+
+
+# view cart
+@app.route('/cart')
+def view_cart():
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    cart = session.get('cart', [])
+    total = sum(item['price'] * item['quantity'] for item in cart)
+    return render_template('cart.html', cart=cart, total=total)
+
+# remove item from cart
+@app.route('/remove-from-cart/<product_id>')
+def remove_from_cart(product_id):
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    cart = session.get('cart', [])
+    cart = [item for item in cart if item['product_id'] != product_id]
+    session['cart'] = cart
+    return redirect(url_for('view_cart'))
 
 
 # Logout Route

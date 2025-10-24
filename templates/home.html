@@ -16,8 +16,17 @@
             <img src="{{ product['image'] }}" alt="{{ product['title'] }}" width="100">
             <p>Price: ₹{{ product['price'] }}</p>
             <p>{{ product['description'] }}</p>
+            <form action="{{ url_for('add_to_cart', product_id=product._id) }}" method="get">
+                    <button class="add-cart-btn">Add to Cart</button>
+                </form>
+
         </div>
         {% endfor %}
+                <a href="{{ url_for('view_cart') }}">
+        <button style="background-color: #3498db; color: white; padding: 8px 12px; border: none; cursor: pointer;">
+            🛒 View Cart
+        </button>
+    </a>
         {% if name != "Guest" %}
         <form action="{{ url_for('logout') }}" method="POST">
             <button type="submit">Logout</button>

@@ -1,0 +1,52 @@
+<!-- templates/cart.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Cart</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .cart-container { max-width: 800px; margin: auto; }
+        .cart-item { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        .cart-item img { width: 100px; height: auto; margin-right: 20px; }
+        .cart-details { flex-grow: 1; }
+        .cart-actions { text-align: right; }
+        .total { font-size: 1.2em; font-weight: bold; margin-top: 20px; }
+        .remove-btn { background-color: #e74c3c; color: white; padding: 5px 10px; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="cart-container">
+        <h2>Hello {{ session.firstName }}, here's your cart 🛒</h2>
+
+        {% if cart %}
+            {% for item in cart %}
+                <div class="cart-item">
+    <img src="{{ item.image }}" alt="{{ item.title }}">
+        <div class="cart-details">
+            <h4>{{ item.title }}</h4>
+            <p>Price: ₹{{ item.price }}</p>
+            <p>Quantity: 
+                <a href="{{ url_for('decrement_item', product_id=item.product_id) }}">➖</a>
+                {{ item.quantity }}
+                <a href="{{ url_for('increment_item', product_id=item.product_id) }}">➕</a>
+            </p>
+            <p>Subtotal: ₹{{ item.price * item.quantity }}</p>
+        </div>
+        <div class="cart-actions">
+            <a href="{{ url_for('remove_from_cart', product_id=item.product_id) }}">
+                <button class="remove-btn">Remove</button>
+            </a>
+        </div>
+        </div>
+            {% endfor %}
+            <div class="total">Total: ₹{{ total }}</div>
+        {% else %}
+            <p>Your cart is empty.</p>
+        {% endif %}
+
+        <a href="{{ url_for('home') }}">← Continue Shopping</a>
+    </div>
+</body>
+</html>
