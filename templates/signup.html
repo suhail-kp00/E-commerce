@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -23,9 +23,9 @@
             <input type="password" name="password" required>
             
             <label for="is_admin">Signup as Admin:</label>
-            <input type="checkbox" name="is_admin" id="is_admin"> Yes, I am an admin
+            <input type="checkbox" name="is_admin" id="is_admin"> Yes, I am an admin -->
             <!-- Hidden by default, shown only if the "Signup as Admin" checkbox is checked -->
-            <div id="admin_code" style="display: none;">
+            <!-- <div id="admin_code" style="display: none;">
                 <label for="admin_code">Enter Admin Code:</label>
                 <input type="password" name="admin_code">
             </div>
@@ -33,9 +33,9 @@
             <p>Already have an account? <a href="/api/login">Login</a></p>
         </form>
     </div>
-    <script>
-        // Show admin code input when the admin checkbox is checked
-        document.getElementById('is_admin').addEventListener('change', function() {
+    <script> -->
+        <!-- // Show admin code input when the admin checkbox is checked -->
+        <!-- document.getElementById('is_admin').addEventListener('change', function() {
             const adminCodeDiv = document.getElementById('admin_code');
             if (this.checked) {
                 adminCodeDiv.style.display = 'block';
@@ -45,5 +45,53 @@
         });
     </script>
 </body>
-</html>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Signup</h1>
+        <form action="{{ url_for('signup') }}" method="POST">
+            <label for="firstName">First Name:</label>
+            <input type="text" name="firstName" required>
 
+            <label for="lastName">Last Name:</label>
+            <input type="text" name="lastName" required>
+
+            <label for="email">Email:</label>
+            <input type="email" name="email" required>
+
+            <label for="password">Password:</label>
+            <input type="password" name="password" required>
+
+            <label for="role">Signup as:</label>
+            <select name="role" id="role" required>
+                <option value="user">User</option>
+                <option value="seller">Seller</option>
+                <option value="admin">Admin</option>
+            </select>
+
+            <div id="admin_code" style="display: none;">
+                <label for="admin_code">Enter Admin Code:</label>
+                <input type="password" name="admin_code">
+            </div>
+
+            <button type="submit">Signup</button>
+            <p>Already have an account? <a href="/api/login">Login</a></p>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('role').addEventListener('change', function () {
+            const adminCodeDiv = document.getElementById('admin_code');
+            adminCodeDiv.style.display = this.value === 'admin' ? 'block' : 'none';
+        });
+    </script>
+</body>
+</html>

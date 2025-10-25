@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pending Sellers</title>
+</head>
+<body>
+    <h1>Pending Seller Requests</h1>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Approve</th>
+        </tr>
+        {% for seller in sellers %}
+        <tr>
+            <td>{{ seller.firstName }} {{ seller.lastName }}</td>
+            <td>{{ seller.email }}</td>
+            <td><a href="{{ url_for('approve_seller', seller_id=seller._id) }}">Approve</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
