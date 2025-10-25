@@ -109,6 +109,46 @@
         </tbody>
     </table>
     {% endif %}
+    <h3 class="mt-4">All Registered Users</h3>
+<table class="table table-striped table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Approval</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.firstName }} {{ user.lastName }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.role }}</td>
+            <td>
+                {% if user.role == 'seller' %}
+                    {% if user.is_approved %}
+                        <span class="badge bg-success">Approved</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    {% endif %}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+            <td>
+                {% if user.role != 'admin' %}
+                    <a href="{{ url_for('delete_user', user_id=user._id|string) }}" class="btn btn-danger btn-sm" class="btn btn-danger btn-sm" 
+                       onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
+                {% else %}
+                    <button class="btn btn-secondary btn-sm" disabled>Admin</button>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
     <!-- Logout -->
     <form action="{{ url_for('logout') }}" method="POST" style="margin-top: 20px;">

@@ -27,6 +27,8 @@
             🛒 View Cart
         </button>
     </a>
+    <a href="{{ url_for('profile') }}">My Profile</a>
+
         {% if name != "Guest" %}
         <form action="{{ url_for('logout') }}" method="POST">
             <button type="submit">Logout</button>

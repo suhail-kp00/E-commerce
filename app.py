@@ -28,6 +28,38 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 ADMIN_CODE="Ghost"
+# Profile
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    user = users_collection.find_one({'email': session['email']})
+
+    if request.method == 'POST':
+        address = request.form.get('address')
+        phone = request.form.get('phone')
+        bio = request.form.get('bio')
+        profile_pic = request.files.get('profile_pic')
+
+        update_data = {
+            'address': address,
+            'phone': phone,
+            'bio': bio
+        }
+
+        # Save profile picture if uploaded
+        if profile_pic and profile_pic.filename:
+            image_filename = secrets.token_hex(8) + os.path.splitext(profile_pic.filename)[1]
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
+            profile_pic.save(image_path)
+            update_data['profile_pic'] = url_for('static', filename='uploads/' + image_filename)
+
+        users_collection.update_one({'email': session['email']}, {'$set': update_data})
+        return redirect(url_for('profile'))
+
+    return render_template('profile.html', user=user)
+
 
 # Home Route
 @app.route('/')
@@ -42,11 +74,32 @@ def home():
 @app.route('/admin')
 def admin():
     if 'email' in session:
-        products = products_collection.find()  # Get all products
+        products =list(products_collection.find())  # Get all products
         pending_sellers = list(users_collection.find({'role': 'seller', 'is_approved': False}))
-        return render_template('admin.html', products=products, pending_sellers=pending_sellers)
+        users = list(users_collection.find())
+        return render_template('admin.html',users=users, products=products, pending_sellers=pending_sellers)
     else:
         return redirect(url_for('login'))
+# edit users
+@app.route('/delete-user/<user_id>')
+def delete_user(user_id):
+    if 'email' not in session or session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    user = users_collection.find_one({'_id': ObjectId(user_id)})
+
+    if not user:
+        return "User not found!"
+
+    # If it's a seller, delete all their products
+    if user['role'] == 'seller':
+        products_collection.delete_many({'owner_email': user['email']})
+
+    # Delete the user account
+    users_collection.delete_one({'_id': ObjectId(user_id)})
+
+    return redirect(url_for('admin'))
+
 
 # Signup Route
 @app.route('/api/signup', methods=['GET', 'POST'])
@@ -66,10 +119,6 @@ def signup():
         user = users_collection.find_one({"email": email})
         if user:
             return "Email already registered!"
-        # If trying to sign up as an admin, validate admin code
-        # if is_admin:
-        #     if admin_code != ADMIN_CODE:
-        #         return "Invalid admin code!"
         if role == 'admin' and admin_code != ADMIN_CODE:
             return "Invalid admin code!"
 
@@ -85,8 +134,10 @@ def signup():
             'password': hashed_password,
             'role': role,
             'is_approved': role != 'seller',  # Sellers need approval
-
-            # 'is_admin': bool(is_admin)  # Store if the user is an admin
+            "address": "",
+            "phone": "",
+            "bio": "",
+            "profile_pic": ""
         })
         
         # Set session after successful signup
@@ -95,12 +146,7 @@ def signup():
         session['lastName'] = last_name
         session['role'] = role
         session['is_approved'] = role != 'seller'
-        # session['is_admin'] = bool(is_admin)
-        
-        # if is_admin:
-        #     return redirect(url_for('admin'))
-        # else:
-        #     return redirect(url_for('home'))
+    
         if role == 'admin':
             return redirect(url_for('admin'))
         elif role == 'seller':
@@ -127,12 +173,13 @@ def login():
                 session['firstName'] = user['firstName']
                 session['lastName'] = user['lastName']
                 session['is_admin'] = user.get('is_admin', False)
+                session['role'] = user['role']
 
-                if user['role'] == 'seller' and not user.get('is_approved', False):
-                    return "Your seller account is pending admin approval."
-                
-                # If user is an admin, redirect to admin page
-                if session['is_admin']:
+                if user['role'] == 'seller':
+                    if not user.get('is_approved', False):
+                        return "Your seller account is pending admin approval."
+                    return redirect(url_for('seller_dashboard'))
+                elif user['role'] == 'admin':
                     return redirect(url_for('admin'))
                 else:
                     return redirect(url_for('home'))
@@ -167,7 +214,12 @@ def add_product():
             'description': description,
             'owner_email': session['email']  # Track who added it
         })
-        return redirect(url_for('admin'))
+        if session.get('role') == 'admin':
+            return redirect(url_for('admin'))
+        elif session.get('role') == 'seller':
+            return redirect(url_for('seller_dashboard'))
+        else:
+            return redirect(url_for('home'))
 
     return render_template('add_product.html')
 
@@ -195,7 +247,12 @@ def edit_product(product_id):
                 'description': description
             }}
         )
-        return redirect(url_for('admin'))
+        if session.get('role') == 'admin':
+            return redirect(url_for('admin'))
+        elif session.get('role') == 'seller':
+            return redirect(url_for('seller_dashboard'))
+        else:
+            return redirect(url_for('home'))
 
     return render_template('edit_product.html', product=product)
 
@@ -207,7 +264,12 @@ def delete_product(product_id):
 
     # Delete product from MongoDB
     products_collection.delete_one({'_id': ObjectId(product_id)})
-    return redirect(url_for('admin'))
+    if session.get('role') == 'admin':
+        return redirect(url_for('admin'))
+    elif session.get('role') == 'seller':
+        return redirect(url_for('seller_dashboard'))
+    else:
+        return redirect(url_for('home'))
 
 #seller
 
@@ -232,8 +294,7 @@ def approve_seller(seller_id):
     if session.get('role') != 'admin':
         return redirect(url_for('login'))
     users_collection.update_one({'_id': ObjectId(seller_id)}, {'$set': {'is_approved': True}})
-    return redirect(url_for('view_sellers'))
-
+    return redirect(url_for('admin'))
 # cart
 @app.route('/add-to-cart/<product_id>')
 def add_to_cart(product_id):
